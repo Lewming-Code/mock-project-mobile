@@ -1,0 +1,109 @@
+*** Settings ***
+Library    AppiumLibrary
+Suite Setup    Set Appium Timeout    30s
+Suite Teardown    Close All Applications
+
+*** Variables ***
+#Device Setup
+${REMOTE_URL}    http://127.0.0.1:4723
+${DEVICE_NAME}    emulator-5554
+${ANDROID_PLATFORM_NAME}    Android
+${ANDROID_AUTOMATION_NAME}    UiAutomator2
+${ANDROID_PLATFORM_VERSION}    15.0
+
+#Contact Locators
+${CONTACT_HOME_PAGE}     //android.widget.FrameLayout[@resource-id="android:id/content"]
+${CONTACT_BUTTON}        //android.widget.TextView[@text="Contacts"]
+${CREATE_CONTACT}        //android.widget.TextView[@text="Create new contact"]
+${FIRST_NAME}            //android.widget.EditText[@text="First name"]
+${LAST_NAME}             //android.widget.EditText[@text="Last name"]
+${PHONE_NUMBER}          //android.widget.EditText[@text="Phone"]
+${SAVE_BUTTON}           //android.widget.Button[@resource-id="com.google.android.contacts:id/toolbar_button"]
+
+#Message Locators
+${NON_ACCOUNT}           //*[@text="Use Messages without an account"]
+${MESSAGE_MAIN_PAGE}     //*[@content-desc="Conversation list"]
+${START_CHAT}            //*[@content-desc="Start chat"]
+${TEXT_MESSAGE}          //*[@text='Text message']
+${SEND_SMS}              //*[@content-desc="Send SMS"]
+
+#Test Data
+${FIRST_NAME_1}          Oanh
+${LAST_NAME_1}           Lam 
+${PHONE1}                0344835102
+${FIRST_CONTACT}         //*[@text="Oanh Lam"]
+${MESSAGE}               Hello World!
+
+*** Test Cases ***
+TC-01
+    Open Application    ${REMOTE_URL}    
+                        ...    deviceName=${DEVICE_NAME}    automationName=${ANDROID_AUTOMATION_NAME}    
+                        ...    platformName=${ANDROID_PLATFORM_NAME}    platformVersion=${ANDROID_PLATFORM_VERSION}
+                        ...    appPackage=com.google.android.dialer    appActivity=.extensions.GoogleDialtactsActivity
+    Verify Contact Main Page
+    Click To Contact Button
+    Click To Create New Contact
+    Input Name     ${FIRST_NAME_1}     ${LAST_NAME_1}
+    Input Phone Number    ${PHONE1}
+    Save New Contact
+    Verify A New Contact Created Sucessfully    ${FIRST_NAME1}    ${LAST_NAME1}    
+
+TC-02
+    Open Application    ${REMOTE_URL}    
+                        ...    deviceName=${DEVICE_NAME}    automationName=${ANDROID_AUTOMATION_NAME}    
+                        ...    platformName=${ANDROID_PLATFORM_NAME}    platformVersion=${ANDROID_PLATFORM_VERSION}
+                        ...    appPackage=com.google.android.apps.messaging    appActivity=.ui.ConversationListActivity
+    Verify Message Main Page
+    Click Start Chat
+    Select Contact    ${FIRST_CONTACT}
+    Input Message Text    ${MESSAGE}
+    Click Send SMS
+    Verify Message Sended    ${MESSAGE} 
+
+*** Keywords ***
+Verify Contact Main Page 
+    Page Should Contain Element    ${CONTACT_HOME_PAGE}
+Click To Contact Button
+    Wait Until Element Is Visible    ${CONTACT_BUTTON}
+    Click Element    ${CONTACT_BUTTON}
+Click To Create New Contact
+    Wait Until Element Is Visible    ${CREATE_CONTACT}
+    Click Element    ${CREATE_CONTACT}
+Input Name 
+    [Arguments]  ${first_name_1}    ${last_name_1}
+    Wait Until Element Is Visible    ${FIRST_NAME}
+    Input Text    ${FIRST_NAME}    ${first_name_1}
+    Wait Until Element Is Visible    ${LAST_NAME}
+    Input Text    ${LAST_NAME}     ${last_name_1}
+Input Phone Number
+    [Arguments]    ${phone_number1}
+    Wait Until Element Is Visible    ${PHONE_NUMBER}
+    Input Text    ${PHONE_NUMBER}    ${phone_number1}
+Save New Contact
+    Wait Until Element Is Visible    ${SAVE_BUTTON}
+    Click Element    ${SAVE_BUTTON}
+Verify A New Contact Created Sucessfully
+    [Arguments]       ${first_name_1}    ${last_name_1}
+    Wait Until Page Contains    ${first_name_1} ${last_name_1} saved    10s
+
+Verify Message Main Page
+    Wait Until Page Contains Element    ${NON_ACCOUNT}    10s
+    Click Element    ${NON_ACCOUNT}
+    Wait Until Page Contains Element    ${MESSAGE_MAIN_PAGE}
+Click Start Chat
+    Wait Until Element Is Visible    ${START_CHAT}
+    Click Element    ${START_CHAT}
+Select Contact
+    [Arguments]    ${contact}
+    Wait Until Element Is Visible    ${contact}
+    Click Element    ${contact}
+Input Message Text
+    [Arguments]    ${message}
+    Wait Until Element Is Visible    ${TEXT_MESSAGE}
+    Input Text    ${TEXT_MESSAGE}    ${message}
+Click Send SMS
+    Wait Until Page Contains Element    ${SEND_SMS}
+    Click Element    ${SEND_SMS}
+Verify Message Sended
+    [Arguments]    ${message}
+    Wait Until Page Contains    ${message}
